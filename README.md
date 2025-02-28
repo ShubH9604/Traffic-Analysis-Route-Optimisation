@@ -28,12 +28,14 @@ The project features a **Streamlit-based web interface** to make all functionali
 ---
 
 ## 📂 Project Structure  
+<pre>
 📁 Real-Time-Traffic-Analysis
 ├── app.py                   # Main Streamlit app
 ├── traffic_analysis.py      # Fetch and process traffic data
 ├── map_display.py           # Render Folium maps
 ├── requirements.txt         # Project dependencies
-└── README.md                # Project documentation
+└── README.md                 # Project documentation
+</pre>
 
 ---
 
