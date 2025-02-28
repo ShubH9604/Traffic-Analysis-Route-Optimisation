@@ -1,0 +1,11 @@
+streamlit
+plotly
+pandas
+folium
+polyline
+streamlit-folium
+googlemaps
+datetime
+
+#for installing libraries
+#pip install streamlit plotly pandas folium polyline streamlit-folium googlemaps datetime
