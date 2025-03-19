@@ -36,9 +36,22 @@ st.sidebar.markdown("### 📍 Enter Locations")
 start_location = st.sidebar.text_input("Start Location", "")
 destination_location = st.sidebar.text_input("Destination", "")
 
+st.sidebar.markdown(
+    """
+    <style>
+        div[data-testid="stRadio"] > label {
+            display: none;
+        }
+        div[data-testid="stRadio"] {
+            margin-top: -5px;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 st.sidebar.markdown("### 🚗 Select Mode of Transport")
-mode_options = {"🚗 Driving": "driving", "🚶 Walking": "walking", "🚴 Bicycling": "bicycling"}
-selected_mode = st.sidebar.radio("", list(mode_options.keys()))
+mode_options = {"🚗 Driving": "driving", "🚶 Walking": "walking"}
+selected_mode = st.sidebar.radio("", list(mode_options.keys()), horizontal=True)
 
 st.sidebar.markdown("### ⛽ Estimated Cost Calculator")
 fuel_price = st.sidebar.number_input("Fuel Price per Liter (₹)", value=100, min_value=50, max_value=200, step=1)
@@ -67,7 +80,7 @@ if st.sidebar.button("🔍 Get Traffic Data"):
 
             st.markdown("---")
 
-            st.markdown("<h2 class='highlight'>🛣 Available Routes</h2>", unsafe_allow_html=True)
+            st.markdown("<h2 class='highlight'>🛣 Fastest Route</h2>", unsafe_allow_html=True)
 
             def get_eta_in_minutes(route):
                 eta_str = route['eta'].replace(',', '')
@@ -111,10 +124,10 @@ if st.sidebar.button("🔍 Get Traffic Data"):
             st.markdown(
                 f"""
                 <div class="route-box">
-                    <h3 class="highlight">🛣 Fastest Route: {fastest_route['summary']}</h3>
-                    <p>🕒 ETA: {eta_display.strip()}</p>
-                    <p>📏 Distance: {fastest_route['distance']}</p>
-                    <p>💰 Estimated Fuel Cost: ₹{estimated_cost:.2f}</p>
+                    <h3 class="highlight">Route: {fastest_route['summary']}</h3>
+                    <p>🕒 <b>ETA:</b> {eta_display.strip()}</p>
+                    <p>📏 <b>Distance:</b> {fastest_route['distance']}</p>
+                    <p>💰 <b>Estimated Fuel Cost:</b> ₹{estimated_cost:.2f}</p>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -152,13 +165,13 @@ if st.sidebar.button("🔍 Get Traffic Data"):
                 min_eta = df["ETA (minutes)"].min()
                 avg_eta = df["ETA (minutes)"].mean()
 
-                st.markdown(f"<p class='insight-text'>📌 Peak ETA: {peak_eta:.2f} min</p>", unsafe_allow_html=True)
+                st.markdown(f"<p class='insight-text'>📌 <b>Peak ETA:</b> {peak_eta:.2f} min</p>", unsafe_allow_html=True)
                 st.markdown(f"<p>Traffic is heaviest during this time, causing delays. Consider traveling later to avoid congestion.</p>", unsafe_allow_html=True)
-                st.markdown(f"<p class='insight-text'>📌 Average ETA: {avg_eta:.2f} min</p>", unsafe_allow_html=True)
+                st.markdown(f"<p class='insight-text'>📌 <b>Average ETA:</b> {avg_eta:.2f} min</p>", unsafe_allow_html=True)
                 st.markdown(f"<p>Expected travel time under normal traffic conditions.</p>", unsafe_allow_html=True)
-                st.markdown(f"<p class='insight-text'>📌 Congestion Peak: {df.iloc[df['ETA (minutes)'].idxmax()]['Time']}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p class='insight-text'>📌 <b>Congestion Peak:</b> {df.iloc[df['ETA (minutes)'].idxmax()]['Time']}</p>", unsafe_allow_html=True)
                 st.markdown(f"<p>Peak congestion period—expect longer travel times. Avoid if possible.</p>", unsafe_allow_html=True)
-                st.markdown(f"<p class='insight-text'>📌 Smoothest Travel Window: {df.iloc[df['ETA (minutes)'].idxmin()]['Time']}</p>", unsafe_allow_html=True)
+                st.markdown(f"<p class='insight-text'>📌 <b>Smoothest Travel Window:</b> {df.iloc[df['ETA (minutes)'].idxmin()]['Time']}</p>", unsafe_allow_html=True)
                 st.markdown(f"<p>Least crowded time—fastest travel. Plan accordingly.</p>", unsafe_allow_html=True)
             
             else:
