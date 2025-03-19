@@ -13,27 +13,16 @@ def display_map(encoded_polyline, start_point, destination):
     # Extract latitude & longitude of start and destination
     start_lat, start_lon = start_point
     dest_lat, dest_lon = destination
-    midpoint = [(start_lat + dest_lat) / 2, (start_lon + dest_lon) / 2]
 
-    # Create a folium map centered at the midpoint
-    m = folium.Map(location=start_point, zoom_start=10)
-
-    # # Add start marker (Green)
-    # folium.Marker(
-    #     location=[start_lat, start_lon],
-    #     popup="Start Location",
-    #     icon=folium.Icon(color="green", icon="play", prefix="fa")
-    # ).add_to(m)
-
-    # # Add destination marker (Red)
-    # folium.Marker(
-    #     location=[dest_lat, dest_lon],
-    #     popup="Destination",
-    #     icon=folium.Icon(color="red", icon="map-marker", prefix="fa")
-    # ).add_to(m)
+    # Create a folium map centered at the start position
+    m = folium.Map(location=[start_lat, start_lon], zoom_start=12)
 
     # Add polyline to the map
     folium.PolyLine(decoded_route, color="blue", weight=5, opacity=0.7).add_to(m)
+
+    # Add markers for start and destination
+    folium.Marker([start_lat, start_lon], popup="Start", icon=folium.Icon(color="green")).add_to(m)
+    folium.Marker([dest_lat, dest_lon], popup="Destination", icon=folium.Icon(color="red")).add_to(m)
 
     # Display map in Streamlit
     folium_static(m)
