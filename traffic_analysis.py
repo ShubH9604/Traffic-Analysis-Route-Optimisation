@@ -1,6 +1,5 @@
 import googlemaps
 import datetime
-# hi
 # Load API Key
 API_KEY = "AIzaSyCCEbSfQkPOmkbeYaphpCgTkB4GFA1wQj8"
 gmaps = googlemaps.Client(key=API_KEY)
