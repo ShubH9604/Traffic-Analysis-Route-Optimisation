@@ -15,7 +15,7 @@ def display_map(encoded_polyline, start_point, destination):
     dest_lat, dest_lon = destination
 
     # Create a folium map centered at the start position
-    m = folium.Map(location=[start_lat, start_lon], zoom_start=12)
+    m = folium.Map(location=[start_lat, start_lon], zoom_start=10)
 
     # Add polyline to the map
     folium.PolyLine(decoded_route, color="blue", weight=5, opacity=0.7).add_to(m)
