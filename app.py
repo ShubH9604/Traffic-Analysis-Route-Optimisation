@@ -17,116 +17,104 @@ st.markdown(
     """
     <style>
         body { background-color: #1E1E1E; }
-        .sidebar .sidebar-content { background-color: #222; padding-top: 0px !important; }
+        .sidebar .sidebar-content { background-color: #222; }
         h1, h2, h3, h4, h5, h6, p, span, div { color: white !important; }
         .stButton button { background-color: #FF8C00; color: white; font-weight: bold; }
         .stButton button:hover { background-color: #FF7000; }
         .stTextInput input { background-color: #333; color: white; }
-        .stRadio div { color: white !important; }
-        .bold-text { font-size: 20px; font-weight: bold; font-family: Arial, sans-serif; }
+        .route-box, .journey-box { border: 2px solid white; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
         .highlight { color: #FF8C00; font-size: 22px; font-weight: bold; }
-        .route-box { border: 2px solid white; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .journey-box { border: 2px solid white; padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .insight-text { font-size: 18px; font-weight: bold; }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# Title
 st.markdown("<h1 style='text-align: center;'>Real-Time Traffic Analysis & Route Optimization</h1>", unsafe_allow_html=True)
 
 # Sidebar
-st.sidebar.markdown("<h2 style='margin-bottom: -35px;'>🚦 Smart Travel Assistant</h2>", unsafe_allow_html=True)
-st.sidebar.markdown("---")
-
-# Input fields
 st.sidebar.markdown("### 📍 Enter Locations")
 start_location = st.sidebar.text_input("Start Location", "")
 destination_location = st.sidebar.text_input("Destination", "")
 
-# Mode of Transport selection
 st.sidebar.markdown("### 🚗 Select Mode of Transport")
-mode_options = {
-    "🚗 Driving": "driving",
-    "🚶 Walking": "walking",
-    "🚴 Bicycling": "bicycling",
-}
+mode_options = {"🚗 Driving": "driving", "🚶 Walking": "walking", "🚴 Bicycling": "bicycling"}
 selected_mode = st.sidebar.radio("", list(mode_options.keys()))
 
-# Estimated cost calculator
 st.sidebar.markdown("### ⛽ Estimated Cost Calculator")
 fuel_price = st.sidebar.number_input("Fuel Price per Liter (₹)", value=100, min_value=50, max_value=200, step=1)
 fuel_efficiency = st.sidebar.number_input("Vehicle Fuel Efficiency (km/l)", value=15, min_value=5, max_value=50, step=1)
 
 if st.sidebar.button("🔍 Get Traffic Data"):
     st.sidebar.success("Fetching best routes...")
-
     traffic_routes = cached_traffic_info(start_location, destination_location, mode_options[selected_mode])
 
     if not traffic_routes:
         st.sidebar.error("Invalid locations. Please enter valid city names!")
     else:
         col1, col2 = st.columns([1.6, 2.2])
-
         with col1:
             st.markdown("<h2 class='highlight'>📌 Journey Details</h2>", unsafe_allow_html=True)
             st.markdown(
                 f"""
                 <div class="journey-box">
-                    <p class='bold-text'>📍 <b>Start:</b> {start_location}</p>
-                    <p class='bold-text'>📍 <b>Destination:</b> {destination_location}</p>
-                    <p class='bold-text'>📍 <b>Mode:</b> {selected_mode}</p>
+                    <p>📍 <b>Start:</b> {start_location}</p>
+                    <p>📍 <b>Destination:</b> {destination_location}</p>
+                    <p>📍 <b>Mode:</b> {selected_mode}</p>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
+
             st.markdown("---")
 
             st.markdown("<h2 class='highlight'>🛣 Available Routes</h2>", unsafe_allow_html=True)
-            # Function to convert ETA string to total minutes
+
             def get_eta_in_minutes(route):
-                eta_str = route['eta']
+                eta_str = route['eta'].replace(',', '')
                 eta_parts = eta_str.split()
-                eta_hours = 0
-                eta_minutes = 0
-
+                days, hours, minutes = 0, 0, 0
+                
+                if "day" in eta_parts:
+                    days = int(eta_parts[eta_parts.index("day") - 1])
+                if "days" in eta_parts:
+                    days = int(eta_parts[eta_parts.index("days") - 1])
                 if "hour" in eta_parts:
-                    eta_hours = int(eta_parts[eta_parts.index("hour") - 1])
-                elif "hours" in eta_parts:
-                    eta_hours = int(eta_parts[eta_parts.index("hours") - 1])
-
+                    hours = int(eta_parts[eta_parts.index("hour") - 1])
+                if "hours" in eta_parts:
+                    hours = int(eta_parts[eta_parts.index("hours") - 1])
                 if "min" in eta_parts:
-                    eta_minutes = int(eta_parts[eta_parts.index("min") - 1])
-                elif "mins" in eta_parts:
-                    eta_minutes = int(eta_parts[eta_parts.index("mins") - 1])
+                    minutes = int(eta_parts[eta_parts.index("min") - 1])
+                if "mins" in eta_parts:
+                    minutes = int(eta_parts[eta_parts.index("mins") - 1])
+                
+                return (days * 1440) + (hours * 60) + minutes
 
-                return (eta_hours * 60) + eta_minutes
-
-            # Sort routes by ETA (ascending order, fastest route first)
             traffic_routes.sort(key=get_eta_in_minutes)
-
-            # Select the fastest route
             fastest_route = traffic_routes[0]
             eta_total_minutes = get_eta_in_minutes(fastest_route)
-
-            # Convert ETA to display format
-            eta_hours = eta_total_minutes // 60
+            
+            eta_days = eta_total_minutes // 1440
+            eta_hours = (eta_total_minutes % 1440) // 60
             eta_minutes = eta_total_minutes % 60
-            eta_display = f"{eta_hours} hrs {eta_minutes} min" if eta_hours else f"{eta_minutes} min"
+            
+            eta_display = ""
+            if eta_days:
+                eta_display += f"{eta_days} day "
+            if eta_hours:
+                eta_display += f"{eta_hours} hrs "
+            if eta_minutes:
+                eta_display += f"{eta_minutes} min"
 
-            # Fuel cost estimation
             distance_km = float(fastest_route['distance'].split()[0].replace(',', ''))
             estimated_cost = (distance_km / fuel_efficiency) * fuel_price
 
-            # Display only the fastest route
             st.markdown(
                 f"""
                 <div class="route-box">
                     <h3 class="highlight">🛣 Fastest Route: {fastest_route['summary']}</h3>
-                    <p class='bold-text'>🕒 ETA: {eta_display}</p>
-                    <p class='bold-text'>📏 Distance: {fastest_route['distance']}</p>
-                    <p class='bold-text'>💰 Estimated Fuel Cost: ₹{estimated_cost:.2f}</p>
+                    <p>🕒 ETA: {eta_display.strip()}</p>
+                    <p>📏 Distance: {fastest_route['distance']}</p>
+                    <p>💰 Estimated Fuel Cost: ₹{estimated_cost:.2f}</p>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -134,9 +122,10 @@ if st.sidebar.button("🔍 Get Traffic Data"):
 
         with col2:
             st.markdown("<h2 class='highlight'>🗺 Route Map</h2>", unsafe_allow_html=True)
-            start_coords = (23.0225, 72.5714)  # Dummy Ahmedabad coords
-            dest_coords = (19.0760, 72.8777)  # Dummy Mumbai coords
-            display_map(traffic_routes[0]['polyline'], start_coords, dest_coords)
+            start_coords = fastest_route['start_location']  # Extract start coordinates from API
+            dest_coords = fastest_route['end_location']  # Extract destination coordinates from API
+
+            display_map(fastest_route['polyline'], start_coords, dest_coords)
 
         st.markdown("---")
 
