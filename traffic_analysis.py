@@ -7,34 +7,52 @@ gmaps = googlemaps.Client(key=API_KEY)
 
 def get_traffic_info(start, end, mode="driving"):
     """
-    Fetch traffic data including ETA, distance, route summary, and polyline,
-    based on the selected mode of transport.
+    Fetch traffic data including ETA, distance, route summary, and polyline.
     """
     try:
         # Request directions with user-selected transport mode
         directions = gmaps.directions(
-            start, end, mode=mode,  # Mode now changes dynamically
+            start, end, mode=mode,
             traffic_model="best_guess",
             departure_time="now",
             alternatives=True
         )
 
-        if directions:
-            routes_info = []
-            for route in directions:
-                route_details = {
-                    "eta": route['legs'][0]['duration']['text'] if mode in ["walking", "bicycling", "transit"]
-                           else route['legs'][0]['duration_in_traffic']['text'],
-                    "distance": route['legs'][0]['distance']['text'],
-                    "polyline": route['overview_polyline']['points'],
-                    "summary": route['summary']
-                }
-                routes_info.append(route_details)
-            return routes_info
-        return None
+        if not directions:
+            return None  # Return None if no routes found
+
+        routes_info = []
+        for route in directions:
+            legs = route["legs"][0]  # Extract the first leg directly
+
+            # Extract necessary details
+            eta = legs["duration_in_traffic"]["text"] if mode == "driving" else legs["duration"]["text"]
+            distance = legs["distance"]["text"]
+            polyline = route["overview_polyline"]["points"]
+            summary = route["summary"]
+
+            # Extract start & end coordinates
+            start_location = (legs["start_location"]["lat"], legs["start_location"]["lng"])
+            end_location = (legs["end_location"]["lat"], legs["end_location"]["lng"])
+
+            # Append route info
+            routes_info.append({
+                "eta": eta,
+                "distance": distance,
+                "polyline": polyline,
+                "summary": summary,
+                "start_location": start_location,
+                "end_location": end_location
+            })
+
+        return routes_info
+
+    except KeyError as e:
+        print(f"KeyError: Missing key in API response - {e}")
     except Exception as e:
-        print("Error fetching traffic data:", e)
-        return None
+        print(f"Error fetching traffic data: {e}")
+
+    return None
 
 def get_traffic_trend(start, end, mode="driving"):
     """
